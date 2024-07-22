@@ -1,0 +1,16 @@
+@if (wsProgress()) {
+    <mat-progress-bar [mode]="wsProgress()?.type || 'determinate'" [value]="wsProgress()?.count"></mat-progress-bar>
+    <mat-progress-bar *ngIf="wsProgress()?.count !== 100" mode="buffer"></mat-progress-bar>
+    <div class="label mat-label-large">{{wsProgress()?.label}}</div>
+}
+
+@if (wsConnected()) {
+<div class="main">
+    <button mat-fab extended (click)="start()" [disabled]="wsProgress()">
+        Iteco
+    </button>
+</div>
+} @else {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <div class="label mat-label-large">Connecting to the service...</div>
+}
