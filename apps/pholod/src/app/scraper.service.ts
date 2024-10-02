@@ -8,10 +8,11 @@ export class ScrapperService {
     private socket = inject(Socket);
 
     public icetecoEvent$ = this.socket.fromEvent<any>(WSEventsEnum.iceteco);
+    public pholodoEvent$ = this.socket.fromEvent<any>(WSEventsEnum.pholod);
     public wsConnectedEvent$ = this.socket.fromEvent<boolean>(WSEventsEnum.service);
     public wsProgress$ = this.socket.fromEvent<WSProgress>(WSEventsEnum.progress);
 
-    public getIceteco(): void {
-        this.socket.emit(WSEventsEnum.iceteco);
+    public getDataFromScraper(site: WSEventsEnum.iceteco | WSEventsEnum.pholod): void {
+        this.socket.emit(site);
     }
 }

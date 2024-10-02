@@ -5,7 +5,7 @@ import { debounceTime, tap } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { WSProgress, XLSXHelper } from '@core';
+import { WSEventsEnum, WSProgress, XLSXHelper } from '@core';
 import { CommonModule } from '@angular/common';
 import { StubData } from './data';
 
@@ -27,11 +27,18 @@ export class AppComponent implements OnInit {
         this.scrapperService.wsProgress$.subscribe((res) => this.wsProgress.set(res));
     }
 
-    public start() {
+    public scrapIceteco(): void {
         this.scrapperService.icetecoEvent$
             .pipe(tap((res) => console.log(res)))
             .subscribe((data: Record<string, unknown[]>) => this.downloadExcelFile(data));
-        this.scrapperService.getIceteco();
+        this.scrapperService.getDataFromScraper(WSEventsEnum.iceteco);
+    }
+
+    public scrapPholod(): void {
+        this.scrapperService.icetecoEvent$
+            .pipe(tap((res) => console.log(res)))
+            .subscribe((data: Record<string, unknown[]>) => {});
+            this.scrapperService.getDataFromScraper(WSEventsEnum.pholod);
     }
 
     public downloadExcelFile(data: Record<string, unknown[]>): void {

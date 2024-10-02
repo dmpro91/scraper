@@ -1,7 +1,7 @@
 import { tryCatch } from '@core';
 import { getFromPage } from '@scraper';
 
-export const baseUrl = 'https://iceteco.com.ua';
+export const itecoBaseUrl = 'https://iceteco.com.ua';
 export const pageCountParam = 'product_items_per_page=48';
 
 export const makeScrap = async (page, url, callback): Promise<any> => await tryCatch(() => getFromPage(page,url, callback));
@@ -29,7 +29,7 @@ export const getAllProducts = async (page, categoryUrl) => {
     const [products, nextPage] = await makeScrap(page, categoryUrl, getProductFromPage);
     allProducts = [...allProducts, ...products];
     if (nextPage) {
-        const fromTheNextPage = await getAllProducts(page, `${baseUrl}${nextPage}`);
+        const fromTheNextPage = await getAllProducts(page, `${itecoBaseUrl}${nextPage}`);
         return [...allProducts, ...fromTheNextPage];
     }
     return allProducts;

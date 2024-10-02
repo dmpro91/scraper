@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { groupBy} from 'lodash';
 
-import { makeScrap, getCategoriesLinks, baseUrl, getProductInfo, ProductInfo, getAllProducts, pageCountParam } from './iceteco';
+import { makeScrap, getCategoriesLinks, itecoBaseUrl, getProductInfo, ProductInfo, getAllProducts, pageCountParam } from './iceteco';
 import { WSEventsEnum, WSProgress } from '@core';
 import { closeBrowser, launchBrowser, openNewPage } from '@scraper';
 
@@ -43,6 +43,15 @@ io.on('connection', (socket) => {
         socket.emit(WSEventsEnum.service, true);
     }, 2000);
 
+    socket.on(WSEventsEnum.pholod, async () => {
+        console.log(WSEventsEnum.pholod, 'start');
+        const browser = await launchBrowser();
+        const page = await openNewPage(browser);
+        socket.emit(WSEventsEnum.progress, makeProgress({ count: 1, label: 'Get all Categories...', type: 'query' }));
+
+
+    });
+
     socket.on(WSEventsEnum.iceteco, async () => {
         console.log(WSEventsEnum.iceteco, 'start');
         const browser = await launchBrowser();
@@ -50,7 +59,7 @@ io.on('connection', (socket) => {
         socket.emit(WSEventsEnum.progress, makeProgress({ count: 1, label: 'Get all Categories...', type: 'query' }));
 
         // Categories
-        const categoriesWithLinks = await makeScrap(page,`${baseUrl}/ua`, getCategoriesLinks); // 16 categories
+        const categoriesWithLinks = await makeScrap(page,`${itecoBaseUrl}/ua`, getCategoriesLinks); // 16 categories
 
         const categoriesCount = categoriesWithLinks.length;
         socket.emit(
@@ -67,7 +76,7 @@ io.on('connection', (socket) => {
                         label: `Get Products from ${category.title}...${index + 1}/${categoriesCount}`,
                     })
                 );
-                const categoryProducts = await getAllProducts(page,`${baseUrl}${category.href}?${pageCountParam}`);
+                const categoryProducts = await getAllProducts(page,`${itecoBaseUrl}${category.href}?${pageCountParam}`);
                 return categoryProducts.map((product) => ({ ...product, category: category.title }));
             };
 
@@ -88,7 +97,7 @@ io.on('connection', (socket) => {
                         label: `Get data from ${product.title}...${index + 1}/${productsWithLinks.length}`,
                     })
                 );
-                const categoryProduct = await makeScrap(page,`${baseUrl}${product.href}`, getProductInfo);
+                const categoryProduct = await makeScrap(page,`${itecoBaseUrl}${product.href}`, getProductInfo);
                 return { ...categoryProduct, title: product.title, category: product.category };
             };
             const acc = await res;
