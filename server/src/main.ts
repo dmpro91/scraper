@@ -5,6 +5,7 @@ import cors from 'cors';
 import { groupBy} from 'lodash';
 
 import { makeScrap, getCategoriesLinks, itecoBaseUrl, getProductInfo, ProductInfo, getAllProducts, pageCountParam } from './iceteco';
+import * as pholod from './pholod';
 import { WSEventsEnum, WSProgress } from '@core';
 import { closeBrowser, launchBrowser, openNewPage } from '@scraper';
 
@@ -47,9 +48,35 @@ io.on('connection', (socket) => {
         console.log(WSEventsEnum.pholod, 'start');
         const browser = await launchBrowser();
         const page = await openNewPage(browser);
+        // Categories
         socket.emit(WSEventsEnum.progress, makeProgress({ count: 1, label: 'Get all Categories...', type: 'query' }));
+        const categoriesWithLinks = await makeScrap(page,`${pholod.pholodBaseUrl}`, pholod.getCategoriesLinks); // 94 categories
 
+        const categoriesCount = categoriesWithLinks.length;
+        socket.emit(
+            WSEventsEnum.progress,
+            makeProgress({ count: 100, label: `Categories done. Found ${categoriesCount} categories` })
+        );
+        socket.emit(WSEventsEnum.pholod, categoriesWithLinks);
+        // Subcategories
+        const subcategoriesWithMenu = await categoriesWithLinks.slice(0, 1).reduce(async (res, cat, index) => {
+            const asyncSubcategories = async () => {
+                await socket.emit(
+                    WSEventsEnum.progress,
+                    makeProgress({
+                        count: getCalculatedProgress(index, categoriesCount),
+                        label: `Get Subcategories from ${cat.title}...${index + 1}/${categoriesCount}`,
+                    })
+                );
+                const subcategoryPage = await openNewPage(browser);
+                const subcategories = await makeScrap(subcategoryPage,`${cat.href}`, pholod.getSubcategories);
+                return {category: cat.title, subcategories };
+            }
+            return [...(await res), await asyncSubcategories()]
+        }, []);
 
+        await closeBrowser(browser);
+        socket.emit(WSEventsEnum.pholod, subcategoriesWithMenu);
     });
 
     socket.on(WSEventsEnum.iceteco, async () => {

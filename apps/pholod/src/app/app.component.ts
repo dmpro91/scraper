@@ -35,7 +35,7 @@ export class AppComponent implements OnInit {
     }
 
     public scrapPholod(): void {
-        this.scrapperService.icetecoEvent$
+        this.scrapperService.pholodoEvent$
             .pipe(tap((res) => console.log(res)))
             .subscribe((data: Record<string, unknown[]>) => {});
             this.scrapperService.getDataFromScraper(WSEventsEnum.pholod);
