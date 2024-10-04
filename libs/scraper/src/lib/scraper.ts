@@ -2,7 +2,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as jsdom from 'jsdom';
 
-export const launchBrowser = async () =>  {
+export const launchBrowser = async () => {
     const browser = await puppeteer.launch({
         headless: true,
         executablePath: process.env['CHROME_BIN'] || undefined,
@@ -12,10 +12,10 @@ export const launchBrowser = async () =>  {
     return browser;
 };
 
-export const openNewPage = async(browser: Browser) => {
-  const page = await browser.newPage();
-  return page;
-}
+export const openNewPage = async (browser: Browser) => {
+    const page = await browser.newPage();
+    return page;
+};
 
 export const getFromPage = async (page: Page, url: string, bodyHandler: (body: HTMLElement) => any) => {
     await page.goto(url, {
@@ -35,6 +35,10 @@ export const getFromPage = async (page: Page, url: string, bodyHandler: (body: H
     return getData;
 };
 
-export const closeBrowser = async(browser: Browser) => {
-  await browser.close();
-}
+export const closePage = async (page: Page) => {
+    await page.close();
+};
+
+export const closeBrowser = async (browser: Browser) => {
+    await browser.close();
+};

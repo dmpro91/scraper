@@ -7,7 +7,7 @@ import { groupBy} from 'lodash';
 import { makeScrap, getCategoriesLinks, itecoBaseUrl, getProductInfo, ProductInfo, getAllProducts, pageCountParam } from './iceteco';
 import * as pholod from './pholod';
 import { WSEventsEnum, WSProgress } from '@core';
-import { closeBrowser, launchBrowser, openNewPage } from '@scraper';
+import { closeBrowser, closePage, launchBrowser, openNewPage } from '@scraper';
 
 
 const host = process.env.HOST ?? 'localhost';
@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
             WSEventsEnum.progress,
             makeProgress({ count: 100, label: `Categories done. Found ${categoriesCount} categories` })
         );
-        socket.emit(WSEventsEnum.pholod, categoriesWithLinks);
+
         // Subcategories
         const subcategoriesWithMenu = await categoriesWithLinks.slice(0, 1).reduce(async (res, cat, index) => {
             const asyncSubcategories = async () => {
@@ -70,13 +70,39 @@ io.on('connection', (socket) => {
                 );
                 const subcategoryPage = await openNewPage(browser);
                 const subcategories = await makeScrap(subcategoryPage,`${cat.href}`, pholod.getSubcategories);
+                await closePage(subcategoryPage);
                 return {category: cat.title, subcategories };
             }
             return [...(await res), await asyncSubcategories()]
         }, []);
 
+        const productsWithLinks = await subcategoriesWithMenu.slice(0, 1).reduce(async (res, cat) => {
+            const asyncSubcategories = async () => {
+                let products = [];
+                let count = 0;
+                for await (const sub of cat.subcategories.slice(0, 5)) {
+                    await socket.emit(
+                        WSEventsEnum.progress,
+                        makeProgress({
+                            count: getCalculatedProgress(count, cat.subcategories.length),
+                            label: `Get products from ${sub.title} of ${cat.category}...${count + 1}/${cat.subcategories.length}`,
+                        })
+                    );
+                    const subcategoryPage = await openNewPage(browser);
+                    const productsPage = await makeScrap(subcategoryPage, sub.href, (body) => body);
+                    await closePage(subcategoryPage);
+                    const allProducts = await pholod.getAllProducts(productsPage, browser);
+                    products = [...products, ...allProducts.map((item) => ({...item, subCategory: sub.title}))];
+                    count = count + 1;
+                }
+
+                return {category: cat.category, products}
+            }
+            return [...(await res), await asyncSubcategories()]
+        }, []);
+
         await closeBrowser(browser);
-        socket.emit(WSEventsEnum.pholod, subcategoriesWithMenu);
+        socket.emit(WSEventsEnum.pholod, productsWithLinks);
     });
 
     socket.on(WSEventsEnum.iceteco, async () => {
