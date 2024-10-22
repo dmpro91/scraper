@@ -37,16 +37,16 @@ export class AppComponent implements OnInit {
     public scrapPholod(): void {
         this.scrapperService.pholodoEvent$
             .pipe(tap((res) => console.log(res)))
-            .subscribe((data: Record<string, unknown[]>) => {});
+            .subscribe((data: Record<string, unknown[]>) => this.downloadExcelFile(data, true));
             this.scrapperService.getDataFromScraper(WSEventsEnum.pholod);
     }
 
-    public downloadExcelFile(data: Record<string, unknown[]>): void {
+    public downloadExcelFile(data: Record<string, unknown[]>, useCategoryName?: boolean): void {
         const workbook = XLSXHelper.createWorkbook();
 
         Object.entries(data).forEach(([category, dataRow], index) => {
             const worksheet = XLSXHelper.jsonToSheet(dataRow);
-            XLSXHelper.appendSheetToBook(workbook, worksheet, XLSXHelper.sheetNameWithLimits(`${index+1}`));
+            XLSXHelper.appendSheetToBook(workbook, worksheet, XLSXHelper.sheetNameWithLimits(useCategoryName ? category : `${index+1}`));
         });
 
         XLSXHelper.writeAndDownloadFile(workbook);

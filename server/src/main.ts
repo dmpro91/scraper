@@ -101,8 +101,37 @@ io.on('connection', (socket) => {
             return [...(await res), await asyncSubcategories()]
         }, []);
 
+        // Product Data
+        const productData = await productsWithLinks.reduce(async (acc, cat) => {
+            const asyncProducts = async () => {
+                let products = [];
+                let count = 0;
+                for await (const sub of cat.products.slice(0, 5)) {
+                    await socket.emit(
+                        WSEventsEnum.progress,
+                        makeProgress({
+                            count: getCalculatedProgress(count, cat.products.length),
+                            label: `Get product data from ${sub.title} of ${cat.category}...${count + 1}/${cat.products.length}`,
+                        })
+                    );
+                    const productPage = await openNewPage(browser);
+                    const productData = await makeScrap(productPage, sub.href, pholod.getProductData);
+                    await closePage(productPage);
+                    products = [...products, {...sub, ...productData}];
+                    count = count + 1;
+                }
+
+                return products;
+            }
+            return {...(await acc), [cat.category]: await asyncProducts()}
+        }, {})
+
         await closeBrowser(browser);
-        socket.emit(WSEventsEnum.pholod, productsWithLinks);
+        socket.emit(WSEventsEnum.pholod, productData);
+        socket.emit(
+            WSEventsEnum.progress,
+            makeProgress({ count: 100, label: `All for ${WSEventsEnum.pholod} are done. Enjoy:)` })
+        );
     });
 
     socket.on(WSEventsEnum.iceteco, async () => {

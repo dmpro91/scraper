@@ -1,5 +1,6 @@
 import { closePage, openNewPage } from "@scraper";
 import { makeScrap } from "../iceteco";
+import {uniq} from 'lodash';
 
 export const pholodBaseUrl = 'https://pholod.com.ua';
 
@@ -68,4 +69,18 @@ export const  getAllProducts = async (body, browser) => {
         return products;
     }
 }
+
+export const  getProductData = async (body) => {
+    const description = body.querySelector('label[itemprop="description"]')?.innerHTML;
+    const price = body.querySelector('meta[itemprop="price"]')?.getAttribute('content');
+    const textContent = body.querySelector('.tab-content[id="tab1"]')?.textContent;
+    const catalogsWrapper = body.querySelector('.tab-content[id="tab6"]');
+    const linksArray = Array.from(catalogsWrapper.querySelectorAll('a')).map((elm: HTMLLinkElement) => `${elm.href}\n`);
+    return {
+        description,
+        price,
+        textContent,
+        pdfLinks: uniq(linksArray)?.toString()
+    }
+};
 
