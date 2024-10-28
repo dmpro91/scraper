@@ -76,11 +76,11 @@ io.on('connection', (socket) => {
             return [...(await res), await asyncSubcategories()]
         }, []);
 
-        const productsWithLinks = await subcategoriesWithMenu.slice(0, 1).reduce(async (res, cat) => {
+        const productsWithLinks = await subcategoriesWithMenu.reduce(async (res, cat) => {
             const asyncSubcategories = async () => {
                 let products = [];
                 let count = 0;
-                for await (const sub of cat.subcategories.slice(0, 5)) {
+                for await (const sub of cat.subcategories) {
                     await socket.emit(
                         WSEventsEnum.progress,
                         makeProgress({
@@ -106,7 +106,7 @@ io.on('connection', (socket) => {
             const asyncProducts = async () => {
                 let products = [];
                 let count = 0;
-                for await (const sub of cat.products.slice(0, 5)) {
+                for await (const sub of cat.products) {
                     await socket.emit(
                         WSEventsEnum.progress,
                         makeProgress({

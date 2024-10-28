@@ -38,7 +38,7 @@ export const getProducts = (body) => {
 
 export const getSubcategories = (body) => {
     const subCategories = body.querySelector('.widget-categor');
-    return Array.from(subCategories.querySelectorAll('.filter-widget'))
+    return subCategories ? Array.from(subCategories?.querySelectorAll('.filter-widget'))
         .reduce((acc: [], elem: HTMLElement) => {
             const rowCategories = Array.from(elem.querySelectorAll('li'))?.map((item) => {
                 const [, link] = Array.from(item.querySelectorAll('a'));
@@ -48,7 +48,7 @@ export const getSubcategories = (body) => {
                 }
             });
             return [...acc, ...rowCategories]
-        }, [])
+        }, []) : []
 }
 
 export const  getAllProducts = async (body, browser) => {

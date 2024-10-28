@@ -20,6 +20,7 @@ export const openNewPage = async (browser: Browser) => {
 export const getFromPage = async (page: Page, url: string, bodyHandler: (body: HTMLElement) => any) => {
     await page.goto(url, {
         waitUntil: ['networkidle0', 'domcontentloaded'],
+        timeout: 90000
     });
 
     const html = await page.content();
