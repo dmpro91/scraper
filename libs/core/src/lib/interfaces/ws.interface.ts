@@ -1,6 +1,7 @@
 export enum WSEventsEnum {
     service = 'service',
     iceteco = 'iceteco',
+    pholod = 'pholod',
     progress = 'progress'
 }
 

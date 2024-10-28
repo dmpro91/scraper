@@ -6,8 +6,11 @@
 
 @if (wsConnected()) {
 <div class="main">
-    <button mat-fab extended (click)="start()" [disabled]="wsProgress()">
+    <button mat-fab extended (click)="scrapIceteco()" [disabled]="wsProgress()">
         Iteco
+    </button>
+    <button mat-fab extended (click)="scrapPholod()" [disabled]="wsProgress()">
+        Pholod
     </button>
 </div>
 } @else {
