@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
         );
 
         // Subcategories
-        const subcategoriesWithMenu = await categoriesWithLinks.slice(0, 1).reduce(async (res, cat, index) => {
+        const subcategoriesWithMenu = await categoriesWithLinks.reduce(async (res, cat, index) => {
             const asyncSubcategories = async () => {
                 await socket.emit(
                     WSEventsEnum.progress,
